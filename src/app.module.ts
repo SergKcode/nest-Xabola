@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UsersModule } from './users/users.module';
-import { MaterialsModule } from './materials/materials.module';
-import { ModulesModule } from './modules/modules.module';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { HouseModulesModule } from './modules/house-modules/house-modules.module';
+import { UsersModule } from './modules/users/users.module';
+import { MaterialsModule } from './modules/materials/materials.module';
+import { LoginModule } from './modules/login/login.module';
 
 @Module({
   imports: [
@@ -21,8 +22,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       synchronize: true,
     }),
     UsersModule,
+    HouseModulesModule,
     MaterialsModule,
-    ModulesModule,
+    LoginModule,
   ],
   controllers: [AppController],
   providers: [AppService],

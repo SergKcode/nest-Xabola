@@ -6,7 +6,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { HouseModulesModule } from './modules/house-modules/house-modules.module';
 import { UsersModule } from './modules/users/users.module';
 import { MaterialsModule } from './modules/materials/materials.module';
-import { LoginModule } from './modules/login/login.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -21,10 +22,14 @@ import { LoginModule } from './modules/login/login.module';
       autoLoadEntities: true,
       synchronize: true,
     }),
+    JwtModule.register({
+      secret: process.env.SECRET, 
+      signOptions: { expiresIn: '60s' }, 
+    }),
     UsersModule,
     HouseModulesModule,
     MaterialsModule,
-    LoginModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

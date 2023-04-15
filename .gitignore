@@ -4,6 +4,7 @@
 
 postgres/ 
 .env
+.env.template
 
 # Logs
 logs

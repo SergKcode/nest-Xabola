@@ -55,3 +55,14 @@ $ npm run start:prod
 docker-compose up -d
 ```
 6. Run proyect : npm run start
+7. Include .env file filling the following variables:
+
+```
+DB_PASSWORD
+DB_NAME
+DB_HOST
+DB_PORT
+DB_USERNAME
+SECRET
+```
+

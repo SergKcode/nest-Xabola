@@ -5,7 +5,7 @@ import * as bcrypt from 'bcrypt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../entities/user.entity';
 import { Repository } from 'typeorm';
-import { Observable, from } from 'rxjs';
+import { Observable, from, map, switchMap } from 'rxjs';
 import { FindUsersDto } from '../dto/find-users.dto';
 
 @Injectable()
@@ -16,15 +16,16 @@ export class UsersService {
     @InjectRepository(User) private _usersRepository: Repository<User>,
   ) {}
 
-  create(createUserDto: CreateUserDto): Observable<User> {
-    const { email, password } = createUserDto;
+  createUser(user: CreateUserDto): Observable<User> {
+    const { email, password , role} = user;
     this._logger.debug(`Creating new user with email ${email}`);
-    const hashedPassword = bcrypt.hash(password, 10);
-    const user = new User();
-    user.email = email;
-    user.password = hashedPassword;
-
-    return from(this._usersRepository.save(user));
+    return from(bcrypt.hash(password, 10)).pipe(switchMap((hashedPassword:string)=>{
+      const _user = new User();
+      _user.email = email;
+      _user.password = hashedPassword;
+      _user.role=role
+      return from(this._usersRepository.save(_user));
+    }))
   }
 
   findAll() {
@@ -43,5 +44,11 @@ export class UsersService {
 
   remove(id: number) {
     return `This action removes a #${id} user`;
+  }
+
+  public isAdmin(email: string): Observable<boolean> {
+    return from(this._usersRepository.findOne({ where: { email } })).pipe(
+      map((user) => user?.role === 'admin'),
+    );
   }
 }

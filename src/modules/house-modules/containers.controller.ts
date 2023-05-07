@@ -2,6 +2,8 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { ContainersService } from './services/containers.service';
 import { AddNewContainerDto } from './dto/add-new-container';
 import { UpdateContainerDto } from './dto/update-container';
+import { Observable } from 'rxjs';
+import { Container } from './entities/containers.entity';
 
 @Controller('containers')
 export class ContainersController {
@@ -13,12 +15,12 @@ export class ContainersController {
   }
 
   @Get()
-  getAllContainers() {
+  getAllContainers():Observable<Container[]> {
     return this.containersService.getAllContainers();
   }
 
   @Get(':id')
-  getContainer(@Param('id') id: string) {
+  getContainer(@Param('id') id: string) :Observable<Container>{
     return this.containersService.getOneContainer(+id);
   }
 

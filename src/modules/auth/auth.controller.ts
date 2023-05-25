@@ -1,4 +1,4 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, Get } from '@nestjs/common';
 import { LoginDto } from './dto/login.dto';
 import { Observable, of } from 'rxjs';
 import { AuthService } from './services/auth.service';
@@ -7,8 +7,9 @@ import { AuthService } from './services/auth.service';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post('login')
-  login(@Body() loginDto: LoginDto): Observable<{ accessToken: string }> {
+  @Post()
+  login(@Body() loginDto: LoginDto): Observable<any> {
     return this.authService.login(loginDto);
   }
+
 }

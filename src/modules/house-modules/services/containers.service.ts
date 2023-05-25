@@ -14,7 +14,8 @@ export class ContainersService {
   });
 
   constructor(
-    @InjectRepository(Container) private _containersRepository: Repository<Container>,
+    @InjectRepository(Container)
+    private _containersRepository: Repository<Container>,
   ) {}
 
   addNewContainer(newContainer: AddNewContainerDto): Observable<any> {
@@ -24,20 +25,24 @@ export class ContainersService {
 
   getAllContainers(): Observable<Container[]> {
     this._logger.debug(`Getting all containers`);
-    return from(this._containersRepository.find()).pipe(catchError(error=>{
-      this._logger.error(`Error getting all containers`, error);
-      throw new HttpException({message:`Ocurrió un error: ${error}`}, HttpStatus.BAD_REQUEST)
-
-    }))
+    return from(this._containersRepository.find()).pipe(
+      catchError((error) => {
+        this._logger.error(`Error getting all containers`, error);
+        throw new HttpException(
+          { message: `Ocurrió un error: ${error}` },
+          HttpStatus.BAD_REQUEST,
+        );
+      }),
+    );
   }
 
-  getOneContainer(id: number): Observable<Container> {
+  getOneContainer(id: string): Observable<Container> {
     this._logger.debug(`getting container by id ${id}`);
-    return from(this._containersRepository.findOne({ where: { id } }))
+    return from(this._containersRepository.findOne({ where: { id } }));
   }
 
   updateContainer(
-    id: number,
+    id: string,
     containerDto: UpdateContainerDto,
   ): Observable<any> {
     const { name, size, value, image } = containerDto;
@@ -64,7 +69,7 @@ export class ContainersService {
     );
   }
 
-  removeContainer(id: number): Observable<any> {
+  removeContainer(id: string): Observable<any> {
     this._logger.debug(`Removing container with Id ${id}`);
     return from(this._containersRepository.delete(id));
   }

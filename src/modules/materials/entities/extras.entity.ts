@@ -4,7 +4,7 @@ import { ExtraType } from '../models/extra.model';
 @Entity('extra', { schema: '' })
 export class Extra {
   @PrimaryGeneratedColumn('uuid')
-  id: number;
+  id: string;
 
   @Column({ name: 'name', type: 'text', unique: true })
   name: string;

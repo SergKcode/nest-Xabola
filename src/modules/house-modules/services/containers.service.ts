@@ -1,10 +1,12 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { AddNewContainerDto } from '../dto/add-new-container';
 import { UpdateContainerDto } from '../dto/update-container';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Container } from '../entities/containers.entity';
-import { Observable, from, switchMap } from 'rxjs';
+import { Observable, catchError, from, switchMap } from 'rxjs';
+import { errorMonitor } from 'events';
+import { UploadImagesService } from 'src/shared/service/upload-images/upload-images.service';
 
 @Injectable()
 export class ContainersService {
@@ -13,26 +15,51 @@ export class ContainersService {
   });
 
   constructor(
-    @InjectRepository(Container) private _containersRepository: Repository<Container>,
+    @InjectRepository(Container)
+    private _containersRepository: Repository<Container>,
+    private _uploadImagesService: UploadImagesService,
   ) {}
 
-  addNewContainer(newContainer: AddNewContainerDto): Observable<any> {
+  addNewContainer(
+    values: AddNewContainerDto,
+    image: Express.Multer.File,
+  ): Observable<any> {
     this._logger.debug(`Creating new container`);
-    return from(this._containersRepository.save(newContainer));
+
+    return this._uploadImagesService.saveImage(image).pipe(
+      switchMap((image) => {
+        if(!image){
+          throw new HttpException(
+            { message: `No se añadió ninguna imagen` },
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+        const container = Object.assign({}, values, { image });
+        return from(this._containersRepository.save(container));
+      }),
+    );
   }
 
-  getAllContainers(): Observable<any> {
-    this._logger.debug(`Gettin all containers`);
-    return from(this._containersRepository.createQueryBuilder().getMany());
+  getAllContainers(): Observable<Container[]> {
+    this._logger.debug(`Getting all containers`);
+    return from(this._containersRepository.find()).pipe(
+      catchError((error) => {
+        this._logger.error(`Error getting all containers`, error);
+        throw new HttpException(
+          { message: `Ocurrió un error: ${error}` },
+          HttpStatus.BAD_REQUEST,
+        );
+      }),
+    );
   }
 
-  getOneContainer(id: number): Observable<any> {
+  getOneContainer(id: string): Observable<Container> {
     this._logger.debug(`getting container by id ${id}`);
     return from(this._containersRepository.findOne({ where: { id } }));
   }
 
   updateContainer(
-    id: number,
+    id: string,
     containerDto: UpdateContainerDto,
   ): Observable<any> {
     const { name, size, value, image } = containerDto;
@@ -40,7 +67,12 @@ export class ContainersService {
     return from(this.getOneContainer(id)).pipe(
       switchMap((container) => {
         if (!container) {
-          /*         throw new NotFoundException(`El container con el ID '${id}' no fue encontrado.`); */
+          if (!container) {
+            throw new HttpException(
+              { message: `Contenedor con id: ${id} , no ha encontrado` },
+              HttpStatus.NOT_FOUND,
+            );
+          }
         }
         return from(
           this._containersRepository
@@ -48,9 +80,9 @@ export class ContainersService {
             .update(Container)
             .set({
               ...(name && { name }),
-              ...(name && { size }),
-              ...(name && { value }),
-              ...(name && { image }),
+              ...(size && { size }),
+              ...(value && { value }),
+              ...(image && { image }),
             })
             .where('id = :id', { id })
             .execute(),
@@ -59,7 +91,7 @@ export class ContainersService {
     );
   }
 
-  removeContainer(id: number): Observable<any> {
+  removeContainer(id: string): Observable<any> {
     this._logger.debug(`Removing container with Id ${id}`);
     return from(this._containersRepository.delete(id));
   }

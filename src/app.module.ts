@@ -8,6 +8,8 @@ import { UsersModule } from './modules/users/users.module';
 import { MaterialsModule } from './modules/materials/extra.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { JwtModule } from '@nestjs/jwt';
+import { Storage } from '@google-cloud/storage';
+import { UploadImagesService } from './shared/service/upload-images/upload-images.service';
 
 @Module({
   imports: [
@@ -23,15 +25,29 @@ import { JwtModule } from '@nestjs/jwt';
       synchronize: true,
     }),
     JwtModule.register({
-      secret: process.env.SECRET, 
-      signOptions: { expiresIn: '60s' }, 
+      secret: process.env.SECRET,
+      signOptions: { expiresIn: '60s' },
     }),
     UsersModule,
     ContainersModule,
     MaterialsModule,
     AuthModule,
   ],
+  providers: [
+    AppService,
+    {
+      provide: Storage,
+      useValue: new Storage({
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        credentials: {
+          client_email: process.env.FIREBASE_CLIENT_EMAIL,
+          private_key: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+        },
+      }),
+    },
+    UploadImagesService,
+  ],
   controllers: [AppController],
-  providers: [AppService],
+  exports: [Storage],
 })
 export class AppModule {}

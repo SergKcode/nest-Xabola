@@ -6,6 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Container } from '../entities/containers.entity';
 import { Observable, catchError, from, switchMap } from 'rxjs';
 import { errorMonitor } from 'events';
+import { UploadImagesService } from 'src/shared/service/upload-images/upload-images.service';
 
 @Injectable()
 export class ContainersService {
@@ -16,11 +17,27 @@ export class ContainersService {
   constructor(
     @InjectRepository(Container)
     private _containersRepository: Repository<Container>,
+    private _uploadImagesService: UploadImagesService,
   ) {}
 
-  addNewContainer(newContainer: AddNewContainerDto): Observable<any> {
+  addNewContainer(
+    values: AddNewContainerDto,
+    image: Express.Multer.File,
+  ): Observable<any> {
     this._logger.debug(`Creating new container`);
-    return from(this._containersRepository.save(newContainer));
+
+    return this._uploadImagesService.saveImage(image).pipe(
+      switchMap((image) => {
+        if(!image){
+          throw new HttpException(
+            { message: `No se añadió ninguna imagen` },
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+        const container = Object.assign({}, values, { image });
+        return from(this._containersRepository.save(container));
+      }),
+    );
   }
 
   getAllContainers(): Observable<Container[]> {
@@ -55,7 +72,6 @@ export class ContainersService {
               { message: `Contenedor con id: ${id} , no ha encontrado` },
               HttpStatus.NOT_FOUND,
             );
-               
           }
         }
         return from(

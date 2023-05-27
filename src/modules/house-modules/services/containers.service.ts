@@ -50,7 +50,13 @@ export class ContainersService {
     return from(this.getOneContainer(id)).pipe(
       switchMap((container) => {
         if (!container) {
-          /*         throw new NotFoundException(`El container con el ID '${id}' no fue encontrado.`); */
+          if (!container) {
+            throw new HttpException(
+              { message: `Contenedor con id: ${id} , no ha encontrado` },
+              HttpStatus.NOT_FOUND,
+            );
+               
+          }
         }
         return from(
           this._containersRepository
@@ -58,9 +64,9 @@ export class ContainersService {
             .update(Container)
             .set({
               ...(name && { name }),
-              ...(name && { size }),
-              ...(name && { value }),
-              ...(name && { image }),
+              ...(size && { size }),
+              ...(value && { value }),
+              ...(image && { image }),
             })
             .where('id = :id', { id })
             .execute(),

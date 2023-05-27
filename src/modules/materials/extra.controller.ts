@@ -33,7 +33,8 @@ export class ExtrasController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this._extrasService.findOne(+id);
+    console.log(id)
+    return this._extrasService.findOne(id);
   }
 
   @Get('type/:idType')
@@ -44,12 +45,12 @@ export class ExtrasController {
   @Patch(':id')
   @UseGuards(IsAdminGuard)
   update(@Param('id') id: string, @Body() updateMaterialDto: UpdateExtraDto) {
-    return this._extrasService.update(+id, updateMaterialDto);
+    return this._extrasService.update(id, updateMaterialDto);
   }
 
   @Delete(':id')
   @UseGuards(IsAdminGuard)
   remove(@Param('id') id: string) {
-    return this._extrasService.remove(+id);
+    return this._extrasService.remove(id);
   }
 }

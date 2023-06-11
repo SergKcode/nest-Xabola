@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 
 import { Storage } from '@google-cloud/storage';
-import { catchError, from, switchMap, map} from 'rxjs';
+import { catchError, from, switchMap, map, Observable } from 'rxjs';
 
 @Injectable()
 export class UploadImagesService {
@@ -15,7 +15,6 @@ export class UploadImagesService {
     const fileName = `${Date.now()}_${image.originalname}`;
     const fireBaseStorage = this.storage.bucket(bucketName).file(fileName);
 
-
     return from(
       fireBaseStorage.save(image.buffer, {
         metadata: {
@@ -23,13 +22,17 @@ export class UploadImagesService {
         },
       }),
     ).pipe(
-      switchMap((_) => from(fireBaseStorage.getSignedUrl({
-        action: 'read',
-        expires: '03-01-2500', // Fecha de expiración opcional
-      }))),
-      map(data=>data[0]),
+      switchMap((_) =>
+        from(
+          fireBaseStorage.getSignedUrl({
+            action: 'read',
+            expires: '03-01-2500', // Fecha de expiración opcional
+          }),
+        ),
+      ),
+      map((data) => ({url:data[0], fileName})),
       catchError((e) => {
-        console.error(e)
+        console.error(e);
         throw new HttpException(
           { message: `Error subiendo imagen` },
           HttpStatus.BAD_REQUEST,
@@ -37,5 +40,20 @@ export class UploadImagesService {
       }),
     );
   }
-/*   `https://storage.googleapis.com/${bucketName}/${fileName}` */
+
+  deleteImage(fileName: string): Observable<any> {
+    const bucketName = process.env.FIREBASE_BUCKET_URL;
+    const bucket = this.storage.bucket(bucketName);
+    const file = bucket.file(fileName);
+
+    return from(file.delete()).pipe(
+      catchError((e) => {
+        console.error(e);
+        throw new HttpException(
+          { message: `Error eliminando la imagen` },
+          HttpStatus.BAD_REQUEST,
+        );
+      }),
+    );
+  }
 }

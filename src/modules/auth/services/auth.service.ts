@@ -24,11 +24,12 @@ export class AuthService {
     this._logger.log(`Validating user with email: ${email}`);
     return from(this.userRepository.findOne({ where: { email } })).pipe(
       switchMap((user) => {
+        const {email, role}= user
         if (user) {
           return from(bcrypt.compare(password, user.password)).pipe(
             map((match) => {
               if (match) {
-                const payload = { email: user.email };
+                const payload = { email, role};
                 const accessToken = this._jwtService.sign(payload);
                 return { accessToken };
               } else {

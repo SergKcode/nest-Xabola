@@ -1,15 +1,16 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ContainersModule } from './modules/house-modules/containers.module';
 import { UsersModule } from './modules/users/users.module';
-import { MaterialsModule } from './modules/materials/extra.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { JwtModule } from '@nestjs/jwt';
 import { Storage } from '@google-cloud/storage';
 import { UploadImagesService } from './shared/service/upload-images/upload-images.service';
+import { ProductsModule } from './modules/products/products.module';
+import { ProductsController } from './modules/products/products.controller';
+import { AuthMiddleware } from './modules/auth/middlewares/auth.middleware';
 
 @Module({
   imports: [
@@ -25,13 +26,12 @@ import { UploadImagesService } from './shared/service/upload-images/upload-image
       synchronize: true,
     }),
     JwtModule.register({
-      secret: process.env.SECRET,
+      secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: '60s' },
     }),
     UsersModule,
-    ContainersModule,
-    MaterialsModule,
     AuthModule,
+    ProductsModule,
   ],
   providers: [
     AppService,
@@ -50,4 +50,8 @@ import { UploadImagesService } from './shared/service/upload-images/upload-image
   controllers: [AppController],
   exports: [Storage],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(AuthMiddleware).forRoutes(ProductsController);
+  }
+}

@@ -17,15 +17,17 @@ export class UsersService {
   ) {}
 
   createUser(user: CreateUserDto): Observable<User> {
-    const { email, password , role} = user;
+    const { email, password, role } = user;
     this._logger.debug(`Creating new user with email ${email}`);
-    return from(bcrypt.hash(password, 10)).pipe(switchMap((hashedPassword:string)=>{
-      const _user = new User();
-      _user.email = email;
-      _user.password = hashedPassword;
-      _user.role=role
-      return from(this._usersRepository.save(_user));
-    }))
+    return from(bcrypt.hash(password, 10)).pipe(
+      switchMap((hashedPassword: string) => {
+        const _user = new User();
+        _user.email = email;
+        _user.password = hashedPassword;
+        _user.role = role;
+        return from(this._usersRepository.save(_user));
+      }),
+    );
   }
 
   findAll() {
@@ -35,7 +37,12 @@ export class UsersService {
   findOne(query: FindUsersDto): Observable<User> {
     const { email } = query;
     this._logger.debug(`Searching user with email ${email}`);
-    return from(this._usersRepository.findOne({ where: { email } }));
+    return from(
+      this._usersRepository.findOne({
+        where: { email },
+        select: { email: true, password: true },
+      }),
+    );
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {

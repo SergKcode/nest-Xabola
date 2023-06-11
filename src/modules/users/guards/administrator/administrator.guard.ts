@@ -1,16 +1,29 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { UsersService } from '../../service/users.service';
+import { Reflector } from '@nestjs/core';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
-export class AdministratorGuard implements CanActivate {
-  constructor(private _usersService:UsersService){
-  }
-  canActivate(
-    context:ExecutionContext
-  ): Observable<boolean> {
-    const email=context.switchToHttp().getRequest()?.user?.email || ''
-    return this._usersService.isAdmin(email);
-  }
-}
+export class RolAllowedGuard implements CanActivate {
+	constructor(private readonly _reflector: Reflector) {}
 
+	canActivate(context: ExecutionContext): boolean | Observable<boolean> {
+		//Coge del decorador Rol los roles permitidos
+		const allowedRoles = this._reflector.get<string[]>('roles', context.getHandler());
+
+		if (!allowedRoles) {
+			return true;
+		}
+
+		const request = context.switchToHttp().getRequest();
+		const user = request.user;
+
+		// Si el usario no tiene el rol autorizado se le deniega el acceso
+		if (!user || !allowedRoles.includes(user.role)) {
+			return false;
+		}
+
+		return true;
+	}
+}

@@ -1,6 +1,6 @@
-import { Controller, Post, Body, Get } from '@nestjs/common';
+import { Controller, Post, Body, Get, UseGuards, Req } from '@nestjs/common';
 import { LoginDto } from './dto/login.dto';
-import { Observable, of } from 'rxjs';
+import { Observable} from 'rxjs';
 import { AuthService } from './services/auth.service';
 
 @Controller('auth')

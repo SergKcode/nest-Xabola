@@ -19,8 +19,9 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { Observable } from 'rxjs';
 import { Products } from './entities/product.entity';
 import { ApiOperation, ApiParam } from '@nestjs/swagger';
-import { RolAllowedGuard } from '../users/guards/administrator/administrator.guard';
+import { RolAllowedGuard } from '../users/guards/rol-allowed/rolAllowed.guard';
 import { Roles } from '../users/decorators/roles.decorator';
+import { ProductTypes } from './entities/product-type.entity';
 
 @Controller('products')
 export class ProductsController {
@@ -29,62 +30,61 @@ export class ProductsController {
 	@Get()
 	@ApiOperation({ summary: 'Get all products' })
 	@HttpCode(200)
-	getAllProducts() {
+	getAllProducts(): Observable<Products[]> {
 		return this._productsService.getAllProducts();
 	}
 
 	@Post()
 	@ApiOperation({ summary: 'Create a new product' })
-	@Roles('admin') 
-	@UseGuards(RolAllowedGuard) 
+	@Roles('admin')
+	@UseGuards(RolAllowedGuard)
 	@HttpCode(200)
 	@UseInterceptors(FileInterceptor('file'))
-	create(@Body() product: CreateProductDto, @UploadedFile() file: Express.Multer.File) {
-		//TODO: ADD CONTROLLER TO VERIFY IS ADMIN ROLE
+	create(@Body() product: CreateProductDto, @UploadedFile() file: Express.Multer.File): Observable<Products> {
 		return this._productsService.createNewProduct(product, file);
 	}
 
 	@Patch(':id')
 	@ApiOperation({ summary: 'Update product' })
-	@Roles('admin') 
-	@UseGuards(RolAllowedGuard) 
+	@Roles('admin')
+	@UseGuards(RolAllowedGuard)
 	@ApiParam({
 		name: 'id',
 		description: 'The id of the product',
 		example: 'deejhdjfe3i2u'
 	})
 	@HttpCode(200)
-	updateProduct(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
+	updateProduct(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto): Observable<any> {
 		return this._productsService.updateProduct(id, updateProductDto);
 	}
 
 	@Delete(':id')
 	@ApiOperation({ summary: 'Delete one product' })
-	@Roles('admin') 
-	@UseGuards(RolAllowedGuard) 
+	@Roles('admin')
+	@UseGuards(RolAllowedGuard)
 	@ApiParam({
 		name: 'id',
 		description: 'The id of the product',
 		example: 'deejhdjfe3i2u'
 	})
 	@HttpCode(200)
-	removeProduct(@Param('id') id: string) {
+	removeProduct(@Param('id') id: string): Observable<any> {
 		return this._productsService.removeProduct(id);
 	}
 
 	@Get('/types')
 	@ApiOperation({ summary: 'Get all product types' })
 	@HttpCode(200)
-	getProductTypes() {
+	getProductTypes(): Observable<ProductTypes[]> {
 		return this._productsService.getProductTypes();
 	}
 
 	@Post('/types')
 	@ApiOperation({ summary: 'Create new type of product' })
-	@Roles('admin') 
-	@UseGuards(RolAllowedGuard) 
+	@Roles('admin')
+	@UseGuards(RolAllowedGuard)
 	@HttpCode(200)
-	createTypeProduct(@Body() productType: CreateProductTypesDto) {
+	createTypeProduct(@Body() productType: CreateProductTypesDto): Observable<ProductTypes> {
 		return this._productsService.createTypeProduct(productType);
 	}
 
@@ -96,7 +96,7 @@ export class ProductsController {
 		example: 'deejhdjfe3i2u'
 	})
 	@HttpCode(200)
-	getOneProduct(@Param('id') id: string) {
+	getOneProduct(@Param('id') id: string): Observable<Products> {
 		return this._productsService.getOneProduct(id);
 	}
 

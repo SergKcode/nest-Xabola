@@ -24,11 +24,6 @@ export class CreateProductDto {
   @ApiProperty({ description: 'Container size', example: '32' })
   size?: number;
 
-/*   @IsString()
-  @IsOptional()
-  @ApiProperty({ description: 'image', type: 'string' })
-  image?: string; */
-
   @IsNotEmpty()
   @IsString()
   @ApiProperty({ description: 'Type of product id', example: '138djdosld' })

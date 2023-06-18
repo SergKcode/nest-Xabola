@@ -7,10 +7,11 @@ import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { JwtModule } from '@nestjs/jwt';
 import { Storage } from '@google-cloud/storage';
-import { UploadImagesService } from './shared/service/upload-images/upload-images.service';
+import { FirebaseImageService } from './shared/service/firebase-images/firebase-images.service';
 import { ProductsModule } from './modules/products/products.module';
 import { ProductsController } from './modules/products/products.controller';
 import { AuthMiddleware } from './modules/auth/middlewares/auth.middleware';
+import { UsersController } from './modules/users/users.controller';
 
 @Module({
   imports: [
@@ -45,13 +46,13 @@ import { AuthMiddleware } from './modules/auth/middlewares/auth.middleware';
         },
       }),
     },
-    UploadImagesService,
+    FirebaseImageService,
   ],
   controllers: [AppController],
   exports: [Storage],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(AuthMiddleware).forRoutes(ProductsController);
+    consumer.apply(AuthMiddleware).forRoutes(ProductsController, UsersController);
   }
 }

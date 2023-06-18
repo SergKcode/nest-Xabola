@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ProductsService } from './services/products.service';
 import { ProductsController } from './products.controller';
-import { RolAllowedGuard } from '../users/guards/administrator/administrator.guard';
-import { UploadImagesService } from 'src/shared/service/upload-images/upload-images.service';
+import { RolAllowedGuard } from '../users/guards/rol-allowed/rolAllowed.guard';
+import { FirebaseImageService } from 'src/shared/service/firebase-images/firebase-images.service';
 import { PassportModule } from '@nestjs/passport';
 import { Storage } from '@google-cloud/storage';
 import { ConfigModule } from '@nestjs/config';
@@ -16,7 +16,7 @@ import { AuthModule } from '../auth/auth.module';
 	controllers: [ProductsController],
 	providers: [
 		ProductsService,
-		UploadImagesService,
+		FirebaseImageService,
 		PassportModule,
 		RolAllowedGuard,
 		{
